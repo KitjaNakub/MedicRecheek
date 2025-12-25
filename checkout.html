@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ออกเวร</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="card">
+  <div class="clock">
+    <div id="time">00:00:00</div>
+    <div id="date">--/--/----</div>
+  </div>
+  <h2>ระบบลงเวลา<br>หน่วยพิเศษ</h2>
+  <label>รายชื่อหน่วยพิเศษ</label>
+  <select id="nameSelect"></select>
+
+  <label>คนยืนยัน</label>
+  <select id="confirmSelect"></select>
+
+  <label>อัปโหลดรูปภาพ</label>
+  <input type="file" id="imageUpload" accept="image/*">
+
+  <button class="btn red" onclick="checkOut()">🔴 ออกเวรหน่วยพิเศษ</button>
+</div>
+
+<script src="chekout.js"></script>
+
+</body>
+</html>

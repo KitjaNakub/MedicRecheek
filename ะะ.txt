@@ -1,0 +1,142 @@
+setInterval(() => {
+  const now = new Date();
+  document.getElementById("time").innerText =
+    now.toLocaleTimeString("th-TH");
+  document.getElementById("date").innerText =
+    now.toLocaleDateString("th-TH");
+}, 1000);
+
+const webhookURL = "https://discord.com/api/webhooks/1452735223484780649/XcOZ7OmkPOOxpzsQjvW0dYX3hn4J9SOG4nj-5RXHzHs4nyIOeU0d4_z2ihT0mJ4ULUEU";
+
+function checkDutyStatus(name) {
+  const staff = staffList.find(s => s.name === name);
+  return staff ? staff.isOnDuty : false;
+}
+// ================================
+// ข้อมูลเจ้าหน้าที่และคนยืนยัน
+// ================================
+let staffList = JSON.parse(localStorage.getItem("staffList")) || [];
+let confirmList = JSON.parse(localStorage.getItem("confirmList")) || [];
+
+// ================================
+// โหลดรายชื่อไปใส่ select
+// ================================
+function loadStaffList() {
+  const nameSelect = document.getElementById("nameSelect");
+  const confirmSelect = document.getElementById("confirmSelect");
+  if (!nameSelect || !confirmSelect) return;
+
+  nameSelect.innerHTML = '<option value="">-- เลือกชื่อ --</option>';
+  confirmSelect.innerHTML = '<option value="">-- เลือกคนยืนยัน --</option>';
+
+  staffList.forEach(s => {
+    const option1 = document.createElement("option");
+    option1.value = s.name;
+    option1.textContent = s.name;
+    nameSelect.appendChild(option1);
+  });
+
+  confirmList.forEach(c => {
+    const option2 = document.createElement("option");
+    option2.value = c.name;
+    option2.textContent = c.name;
+    confirmSelect.appendChild(option2);
+  });
+}
+
+// โหลดทันทีเมื่อเปิดหน้า
+loadStaffList();
+renderConfirmList();
+
+// ================================
+// จัดการคนยืนยัน
+// ================================
+function renderConfirmList() {
+  const confirmTable = document.getElementById("confirmTable");
+  confirmTable.innerHTML = "";
+
+  confirmList.forEach((c, i) => {
+    confirmTable.innerHTML += `
+      <tr>
+        <td>${c.name}</td>
+        <td>
+          <button onclick="removeConfirm(${i})">🗑️ ลบ</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+staffList.push({
+  name: name,
+  totalMinutes: 0,
+  isOnDuty: false, // เพิ่มสถานะเข้าเวร
+  dutyStart: null  // เวลาที่เริ่มเข้าเวร
+});
+function checkDutyStatus(name) {
+  const staff = staffList.find(s => s.name === name);
+  return staff ? staff.isOnDuty : false;
+}
+
+function checkOut() {
+  const name = document.getElementById("nameSelect").value;
+  const confirmName = document.getElementById("confirmSelect").value;
+  const imageInput = document.getElementById("imageUpload");
+
+  if (!name) return alert("กรุณาเลือกชื่อ");
+  if (!confirmName) return alert("กรุณาเลือกคนยืนยัน");
+
+  const staff = staffList.find(s => s.name === name);
+
+  if (!staff) {
+    alert("ไม่พบรายชื่อนี้ในระบบ");
+    return;
+  }
+
+  if (!staff.isOnDuty) {
+    alert("รายชื่อนี้ยังไม่ได้เข้าเวร");
+    return;
+  }
+
+  const elapsedMinutes = Math.floor((Date.now() - staff.dutyStart) / 60000); // คำนวณเวลาที่ผ่านไปเป็นนาที
+  if (elapsedMinutes < 180) {
+    alert(`รายชื่อนี้ยังไม่ครบเวลาเวร 3 ชั่วโมง (ผ่านไป ${elapsedMinutes} นาที)`);
+    return;
+  }
+
+  if (imageInput.files.length === 0) {
+    return alert("กรุณาอัปโหลดรูปภาพ");
+  }
+
+  const file = imageInput.files[0];
+
+  // อัปโหลดรูปภาพไปยัง Cloudinary
+  uploadToCloudinary(file, imageUrl => {
+    const dutyEnd = new Date();
+
+    // ดำเนินการออกเวร
+    staff.isOnDuty = false;
+    staff.totalMinutes += elapsedMinutes; // เพิ่มเวลาที่เข้าเวร
+    staff.dutyStart = null;
+
+    sendWebhook(
+      "🔴 ออกเวร",
+      `👤 ชื่อ: ${name}\n👤 คนยืนยัน: ${confirmName}\n⏰ เวลา: ${dutyEnd.toLocaleString("th-TH")}`,
+      15158332,
+      imageUrl // ใช้ลิงก์รูปภาพที่ได้จาก Cloudinary
+    );
+
+    localStorage.setItem("staf  fList", JSON.stringify(staffList));
+    alert("🔴 ลงเวลาออกเวรเรียบร้อยแล้ว!");
+  });
+}
+
+
+// ================================
+// อัปเดตอัตโนมัติเมื่อ Admin แก้รายชื่อ
+// ================================
+window.addEventListener("storage", () => {
+  staffList = JSON.parse(localStorage.getItem("staffList")) || [];
+  confirmList = JSON.parse(localStorage.getItem("confirmList")) || [];
+  loadStaffList();
+  renderConfirmList();
+});

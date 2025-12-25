@@ -1,4 +1,25 @@
-body {
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 50px;
+  }
+  #clock {
+    font-size: 2em;
+    margin-bottom: 20px;
+  }
+  table {
+    margin: 20px auto;
+    border-collapse: collapse;
+    width: 80%;
+  }
+  table, th, td {
+    border: 1px solid black;
+  }
+  th, td {
+    padding: 10px;
+    text-align: center;
+  }
+  body {
   font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(120deg, #0f2027, #203a43, #2c5364);
   height: 100vh;
@@ -53,27 +74,3 @@ select {
 
 .green { background: #28a745; color: white; }
 .red { background: #dc3545; color: white; }
-.admin { background: #6c757d; color: white; }
-
-.admin-panel {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  justify-content: center;
-  align-items: center;
-}
-
-.admin-box {
-  background: white;
-  color: black;
-  padding: 20px;
-  border-radius: 10px;
-  width: 300px;
-}
-
-.admin-box input {
-  width: 100%;
-  padding: 8px;
-  margin: 6px 0;
-}
