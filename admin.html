@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="card">
+  <h2>⚙️ Admin Panel</h2>
+
+  <input id="newName" placeholder="ชื่อเจ้าหน้าที่ใหม่">
+  <button onclick="addStaff()">➕ เพิ่มรายชื่อ</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ชื่อ</th>
+        <th>เวลาเวรทั้งหมด</th>
+        <th>จัดการ</th>
+      </tr>
+    </thead>
+    <tbody id="staffTable"></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>จัดการคนยืนยัน</h2>
+  <input id="newConfirmName" placeholder="ชื่อคนยืนยันใหม่">
+  <button onclick="addConfirm()">➕ เพิ่มคนยืนยัน</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ชื่อคนยืนยัน</th>
+        <th>จัดการ</th>
+      </tr>
+    </thead>
+    <tbody id="confirmTable"></tbody>
+  </table>
+</div>
+
+
+<script src="admin.js"></script>
+
+</body>
+</html>

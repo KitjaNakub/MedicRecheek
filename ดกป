@@ -1,0 +1,243 @@
+const WEBHOOK_URL = "https://discord.com/api/webhooks/1452979360926793748/ypsrr6WPejaFYeMn5zpsOL5OiTNUgJLW4IWKzPQlddNv3UmqovhADcjeRtz4k3gMXsL9";
+
+function sendWebhook(title, description, color = 3066993) {
+  fetch(WEBHOOK_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      embeds: [{
+        title: title,
+        description: description,
+        color: color,
+        footer: {
+          text: "Duty System"
+        },
+        timestamp: new Date()
+      }]
+    })
+  });
+}
+
+// ------------------------------
+
+let staffList = JSON.parse(localStorage.getItem("staffList")) || [];
+
+function save() {
+  localStorage.setItem("staffList", JSON.stringify(staffList));
+  render();
+}
+
+function render() {
+  const table = document.getElementById("staffTable");
+  table.innerHTML = "";
+
+  staffList.forEach((s, i) => {
+    const h = Math.floor((s.totalMinutes || 0) / 60);
+    const m = (s.totalMinutes || 0) % 60;
+
+    let dutyStatus = "⛔ ไม่ได้เข้าเวร";
+    let dutyTime = "-";
+    let forceBtn = "";
+
+    if (s.isOnDuty && s.dutyStart) {
+      dutyStatus = "🟢 กำลังเข้าเวร";
+      const minutes = Math.floor((Date.now() - s.dutyStart) / 60000);
+      dutyTime = `${minutes} นาที`;
+
+      forceBtn = `<button class="danger" onclick="forceCheckOut(${i})">🚨 Force ออกเวร</button>`;
+    }
+
+    table.innerHTML += `
+      <tr>
+        <td>
+          <input value="${s.name}" onchange="editName(${i}, this.value)">
+        </td>
+        <td>
+          ${h} ชม. ${m} นาที
+          <br>
+          <small>${dutyStatus} (${dutyTime})</small>
+        </td>
+        <td>
+          ${forceBtn}
+          <button onclick="removeStaff(${i})">🗑️</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+
+// ➕ เพิ่มเจ้าหน้าที่
+function saveStaffList() {
+  localStorage.setItem("staffList", JSON.stringify(staffList));
+}
+
+function addStaff() {
+  const name = document.getElementById("newName").value.trim();
+  if (!name) return;
+
+  staffList.push({
+    name: name,
+    totalMinutes: 0,
+    isOnDuty: false,
+    dutyStart: null
+  });
+
+  saveStaffList(); // บันทึกข้อมูลลง localStorage
+  render();
+}
+  sendWebhook(
+    "➕ เพิ่มเจ้าหน้าที่",
+    `👤 ชื่อ: ${name}\n🛠 โดย Admin`,
+    3447003
+  );
+
+  document.getElementById("newName").value = "";
+  save();
+
+
+// 🗑 ลบเจ้าหน้าที่
+function removeStaff(index) {
+  const staffName = staffList[index].name;
+
+  if (!confirm("ลบรายชื่อนี้?")) return;
+
+  staffList.splice(index, 1);
+
+  sendWebhook(
+    "🗑 ลบเจ้าหน้าที่",
+    `👤 ชื่อ: ${staffName}`,
+    15158332
+  );
+
+  save();
+}
+
+// ✏️ แก้ชื่อ
+function editName(index, newName) {
+  newName = newName.trim();
+  if (!newName) return;
+
+  const oldName = staffList[index].name;
+  if (oldName === newName) return;
+
+  staffList[index].name = newName;
+
+  sendWebhook(
+    "✏️ แก้ไขชื่อเจ้าหน้าที่",
+    `จาก: ${oldName}\nเป็น: ${newName}`,
+    15844367
+  );
+
+  save();
+}
+
+
+
+
+
+// 🗑 ลบผู้ยืนยัน
+function removeConfirm(index) {
+  const confirmName = confirmList[index].name;
+
+  if (!confirm(`ลบรายชื่อนี้: ${confirmName}?`)) return;
+
+  confirmList.splice(index, 1);
+
+  sendWebhook(
+    "🗑 ลบผู้ยืนยัน",
+    `👤 ชื่อ: ${confirmName}`,
+    15158332
+  );
+
+  saveConfirmList();
+}
+
+// ✏️ แก้ชื่อผู้ยืนยัน
+function editnewConfirmName(index, newName) {
+  newName = newName.trim();
+  if (!newName) return;
+
+  const oldName = confirmList[index].name;
+  if (oldName === newName) return;
+
+  confirmList[index].name = newName;
+
+  sendWebhook(
+    "✏️ แก้ไขชื่อผู้ยืนยัน",
+    `จาก: ${oldName}\nเป็น: ${newName}`,
+    15844367
+  );
+
+  saveConfirmList();
+}
+
+// บันทึกข้อมูลผู้ยืนยัน
+function saveConfirmList() {
+  localStorage.setItem("confirmList", JSON.stringify(confirmList));
+  renderConfirmList();
+}
+
+// แสดงรายชื่อผู้ยืนยันในตาราง
+function renderConfirmList() {
+  const confirmTable = document.getElementById("confirmTable");
+  confirmTable.innerHTML = "";
+
+  confirmList.forEach((c, i) => {
+    confirmTable.innerHTML += `
+      <tr>
+        <td>
+          <input id="newConfirmName-${i}" value="${c.name}" onchange="editnewConfirmName(${i}, this.value)">
+        </td>
+        <td>
+          <button onclick="removeConfirm(${i})">🗑️ ลบ</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+function forceCheckOut(index) {
+  const staff = staffList[index];
+
+  if (!staff.isOnDuty || !staff.dutyStart) {
+    alert("รายชื่อนี้ไม่ได้เข้าเวรอยู่");
+    return;
+  }
+
+  if (!confirm(`Force ออกเวร: ${staff.name} ?`)) return;
+
+  const elapsedMinutes = Math.floor((Date.now() - staff.dutyStart) / 60000);
+
+  staff.isOnDuty = false;
+  staff.dutyStart = null;
+  staff.totalMinutes = (staff.totalMinutes || 0) + elapsedMinutes;
+
+  save();
+
+  sendWebhook(
+    "🚨 Force ออกเวร (Admin)",
+    `👤 ชื่อ: ${staff.name}
+⏱️ ระยะเวลา: ${elapsedMinutes} นาที
+🛠 โดย: Admin`,
+    15105570
+  );
+
+  alert(`🚨 Force ออกเวรเรียบร้อย (${elapsedMinutes} นาที)`);
+}
+
+
+// โหลดรายชื่อผู้ยืนยันเมื่อเปิดหน้า
+let confirmList = JSON.parse(localStorage.getItem("confirmList")) || [];
+renderConfirmList();
+
+window.addEventListener("storage", () => {
+  staffList = JSON.parse(localStorage.getItem("staffList")) || [];
+  render();
+});
+
+
+
+render();
